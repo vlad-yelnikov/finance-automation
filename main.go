@@ -6,16 +6,15 @@ import (
 	"net/http"
 )
 
-const port string = ":8080"
-
-func checkHealth(w http.ResponseWriter, r *http.Request) {
+func get(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "OK")
 }
 
 func main() {
-    http.HandleFunc("/health", checkHealth)
+    const port string = "8080"
+    http.HandleFunc("/finance", get)
     log.Println("Running on port", port)
-    err := http.ListenAndServe(port, nil)
+    err := http.ListenAndServe("localhost:8080", nil)
     if err != nil {
         log.Fatal(err)
     }
