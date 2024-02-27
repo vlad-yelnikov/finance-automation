@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"time"
-	"math"
 )
 
 type MonoTransaction struct {
@@ -53,6 +54,7 @@ func processTransaction(transaction MonoTransaction) (ProcessedTransaction, bool
 		"Аврора":  "aurora",
 		"YouTube": "services",
 		"ФОП Волошина Надія Олександрівна": "treatment",
+		"Інтернет і ТБ": "services",
 	}
 	categoryByDescription, exists := descriptions[transaction.Description]
 	if exists {
@@ -107,8 +109,14 @@ func processTransaction(transaction MonoTransaction) (ProcessedTransaction, bool
 	}, true
 }
 
-func request(transaction ProcessedTransaction) {
-	log.Printf("handled transaction: %+v\n", transaction)
+func sendRequest(transaction ProcessedTransaction) {
+	url := ""
+	requestBody, err := json.Marshal(transaction)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	go http.Post(url, "application/json", bytes.NewBuffer(requestBody))
 }
 
 func processPostRequest(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +134,7 @@ func processPostRequest(w http.ResponseWriter, r *http.Request) {
 	log.Printf("transaction: %+v\n", transaction)
 	processedTransaction, processed := processTransaction(transaction)
 	if processed {
-		request(processedTransaction)
+		sendRequest(processedTransaction)
 		fmt.Fprint(w, "OK")
 	} else {
 		fmt.Fprint(w, "OK")
