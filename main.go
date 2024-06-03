@@ -9,6 +9,8 @@ import (
 	"math"
 	"net/http"
 	"time"
+
+	"github.com/vlad-yelnikov/finance-automation/env"
 )
 
 type MonoTransaction struct {
@@ -54,7 +56,7 @@ func processTransaction(transaction MonoTransaction) (ProcessedTransaction, bool
 		"Аврора":  "aurora",
 		"YouTube": "services",
 		"ФОП Волошина Надія Олександрівна": "treatment",
-		"Інтернет і ТБ": "services",
+		"Інтернет і ТБ":                    "services",
 	}
 	categoryByDescription, exists := descriptions[transaction.Description]
 	if exists {
@@ -110,7 +112,7 @@ func processTransaction(transaction MonoTransaction) (ProcessedTransaction, bool
 }
 
 func sendRequest(transaction ProcessedTransaction) {
-	url := ""
+	url := env.GetEnv("WEB_APP_URL")
 	requestBody, err := json.Marshal(transaction)
 	if err != nil {
 		log.Println(err)
@@ -152,10 +154,13 @@ func router(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	port := "8080"
+	envErr := env.Load()
+	if envErr != nil {
+		log.Fatal("Error loading .env file:", envErr)
+		return
+	}
 	http.HandleFunc("/", router)
-	log.Println("Running on port", port)
-	err := http.ListenAndServe("localhost:8080", nil)
+	err := http.ListenAndServe(env.GetEnv("HOST"), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
