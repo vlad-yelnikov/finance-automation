@@ -5,10 +5,16 @@ import (
 	"strings"
 )
 
-func Load() error {
+func Load() {
+	// Check if .env file exists
+	if _, err := os.Stat(".env"); os.IsNotExist(err) {
+		return // .env file does not exist, skip loading
+	}
+
+	// Load .env file content
 	content, err := os.ReadFile(".env")
 	if err != nil {
-		return err
+		return
 	}
 
 	lines := strings.Split(string(content), "\n")
@@ -20,17 +26,12 @@ func Load() error {
 
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) != 2 {
-			return err
+			continue
 		}
 
 		key, value := parts[0], parts[1]
-		err := os.Setenv(key, value)
-		if err != nil {
-			return err
-		}
+		os.Setenv(key, value)
 	}
-
-	return nil
 }
 
 func GetEnv(key string) string {

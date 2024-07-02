@@ -154,11 +154,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	envErr := env.Load()
-	if envErr != nil {
-		log.Fatal("Error loading .env file:", envErr)
-		return
-	}
+	env.Load()
 	http.HandleFunc("/", router)
 	err := http.ListenAndServe(env.GetEnv("HOST"), nil)
 	if err != nil {
